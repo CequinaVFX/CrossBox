@@ -1,15 +1,15 @@
 # coding: utf-8
-
+import os
 import sys
 
-try:
-    from Qt import QtCore, QtGui
-    from Qt.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
-    from Qt.QtCore import Qt, Signal
-except ImportError:
-    from PySide6 import QtCore, QtGui
-    from PySide6.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
-    from PySide6.QtCore import Qt, Signal
+## set scaling factor settings before import any Pyside library
+os.environ["QT_ENABLE_HIGHDPI_SCALING"] =  "1"  # enables auto scaling
+os.environ["QT_SCALE_FACTOR"] =  '1'
+
+
+from Qt import QtCore, QtGui, __binding__
+from Qt.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
+from Qt.QtCore import Qt, Signal, QCoreApplication
 
 
 STYLESHEET = """
@@ -18,10 +18,11 @@ STYLESHEET = """
     padding-left: 20px;
     padding-right: 20px;
     font-family: courier;
-    font: 15px;
+    font: 18px;
     font-weight: 600;
 """
-HOVER_COLOR = '223, 94, 48'
+
+HOVER_COLOR = '247, 211, 125'
 
 class CustomButton(QPushButton):
     def __init__(self, button_data=None, parent=None):
@@ -30,13 +31,11 @@ class CustomButton(QPushButton):
         fixed_button_height = 60
 
         label = button_data.get('label')
-        node_class = button_data.get('node_class')
         shortcut = button_data.get('shortcut', None)
-        knob_values = button_data.get('knob_values')
         button_color = button_data.get('color')
 
         _label = '\n'.join(label.split(' ', 1))
-        label = '[{}] {}'.format(shortcut, _label) if shortcut else _label
+        label = '[{}] {}'.format(shortcut.upper(), _label) if shortcut else _label
 
         self.setText(label)
         self.setFixedHeight(fixed_button_height)
@@ -74,16 +73,18 @@ class CrossBox(QWidget):
 
         collect_buttons = []
 
-        top_group = self.group_data['top_group']
-        collect_buttons.append((CustomButton(top_group['tc_button']), (0, 1)))
+        top_group = self.group_data.get('top_group')
+        if top_group:
+            collect_buttons.append((CustomButton(top_group['tc_button']), (0, 1)))
 
-        center_group = self.group_data['center_group']
+        center_group = self.group_data.get('center_group')
         collect_buttons.append((CustomButton(center_group['cl_button']), (1, 0)))
         collect_buttons.append((CustomButton(center_group['cc_button']), (1, 1)))
         collect_buttons.append((CustomButton(center_group['cr_button']), (1, 2)))
 
-        bottom_group = self.group_data['bottom_group']
-        collect_buttons.append((CustomButton(bottom_group['bc_button']), (2, 1)))
+        bottom_group = self.group_data.get('bottom_group')
+        if bottom_group:
+            collect_buttons.append((CustomButton(bottom_group['bc_button']), (2, 1)))
 
         glay_main = QGridLayout()
         self.setLayout(glay_main)
@@ -105,10 +106,6 @@ class CrossBox(QWidget):
 
     def clicked(self):
         _data = self.sender().property('node_data')
-
-        print('clicked', _data)
-        print(type(_data))
-        print('sending string')
         self.node_data = _data
         self.data_submitted.emit(_data)
 
@@ -120,13 +117,14 @@ class CrossBox(QWidget):
             QApplication.quit()
         return None
 
-    # Example data structure
 
-
-## App related functions
 _widget = None
 def main(group_data, callback=None):
     global _widget
+
+    if __binding__ == 'PySide2':
+        QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+        QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
     app_existed = QApplication.instance() is not None
     app = QApplication.instance() or QApplication(sys.argv)

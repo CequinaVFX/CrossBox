@@ -81,7 +81,83 @@ groups = {
                 'knob_values': 'size 250 channels rgba',
                 'color': '160, 55, 120'}
         },
+        },
+    "color_group": {
+        "top_group": {
+            "tc_button": {
+                "label": "colorspace",
+                "node_class": "Colorspace",
+                "shortcut": "h",
+                "knob_values": "",
+                "color": "160, 55, 120"}
+        },
+        "center_group": {
+            "cl_button": {
+                "label": "colorcorrect",
+                "node_class": "ColorCorrect",
+                "shortcut": "f",
+                "knob_values": "channels alpha",
+                "color": "160, 55, 120"},
+            "cc_button": {
+                "label": "grade",
+                "node_class": "Grade",
+                "shortcut": "g",
+                "knob_values": "",
+                "color": "160, 55, 120"},
+            "cr_button": {
+                "label": "saturation",
+                "node_class": "Saturation",
+                "shortcut": "n",
+                "knob_values": "",
+                "color": "160, 55, 120"}
+        },
+        "bottom_group": {
+            "bc_button": {
+                "label": "grade alpha",
+                "node_class": "Grade",
+                "shortcut": "b",
+                "knob_values": "channels alpha white_clamp true",
+                "color": "160, 55, 120"}
         }
+    },
+    "matte_group": {
+        "top_group": {
+            "tc_button": {
+                "label": "merge screen",
+                "node_class": "Merge2",
+                "shortcut": "w",
+                "knob_values": "operation screen",
+                "color": "160, 55, 120"}
+        },
+        "center_group": {
+            "cl_button": {
+                "label": "keymix",
+                "node_class": "Keymix",
+                "shortcut": "a",
+                "knob_values": "channels alpha",
+                "color": "160, 55, 120"},
+            "cc_button": {
+                "label": "channelmerge",
+                "node_class": "ChannelMerge",
+                "shortcut": "s",
+                "knob_values": "",
+                "color": "160, 55, 120"},
+            "cr_button": {
+                "label": "keyer",
+                "node_class": "Keyer",
+                "shortcut": "d",
+                "knob_values": "",
+                "color": "160, 55, 120"}
+        },
+        "bottom_group": {
+            "bc_button": {
+                "label": "channelmerge stencil",
+                "node_class": "ChannelMerge",
+                "shortcut": "x",
+                "knob_values": "operation stencil",
+                "color": "160, 55, 120"}
+        }
+    }
 }
 
 ## JSON functions
@@ -94,7 +170,7 @@ def load_groups():
     return None
 
 def get_json_file():
-    _file = get_json_file()
+    _file = os.path.join(os.path.dirname(__file__), 'crossbox_groups.json')
     if os.path.exists(_file): return _file
 
     return None
@@ -124,10 +200,11 @@ def create_node(node_data):
                                    inpanel=False)
 
 def main(group):
-    _groups = ''
-    group_data = groups[group]
+    saved_data = load_groups()
+    group_data = saved_data.get(group)
+
     if not group_data:
-        print('Group not found')
+        nuke.message('No data found for this group.')
         return
 
     crossbox_ui.main(group_data, create_node)
