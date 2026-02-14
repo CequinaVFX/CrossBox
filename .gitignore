@@ -4,3 +4,5 @@
 /__pycache__/
 *.pyc
 *.xml
+/_tests_/
+/_old_/

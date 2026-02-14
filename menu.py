@@ -1,13 +1,10 @@
 import nuke
-import package
-import crossbox
 
-nuke.tprint('\n\t {} v{} '.format(package.__title__, package.__version__))
+import cb_info
+from cb_menu_builder import build_menu
 
-# if nuke.GUI:
-toolbar = nuke.toolbar("Nodes")
-m = toolbar.addMenu('CrossBox')
-m.addCommand('CrossBox [Blur]', 'crossbox.main("filter_group")', 'b')
-m.addCommand('CrossBox [Transform]', 'crossbox.main("transform_group")', 't')
-m.addCommand('CrossBox [Color]', 'crossbox.main("color_group")', 'g')
-m.addCommand('CrossBox [Matte]', 'crossbox.main("matte_group")', 's')
+nuke.tprint('\n\t {} v{} '.format(cb_info.__title__,
+                                  cb_info.__version__))
+
+if nuke.GUI:
+    build_menu()

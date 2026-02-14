@@ -1,32 +1,38 @@
 {
     "transform_group" : {
+        "settings": {"label": "transform",
+                     "shortcut": "t"},
         "top_group": {
             "tc_button": {
                 "label": "cornerpin",
                 "node_class": "CornerPin2D",
                 "shortcut": "",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         },
         "center_group": {
             "cl_button": {
-                "label": "transform masked",
-                "node_class": "TransformMasked",
+                "label": "reformat",
+                "node_class": "Reformat",
                 "shortcut": "r",
                 "knob_values": "",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": true},
             "cc_button": {
                 "label": "transform",
                 "node_class": "Transform",
                 "shortcut": "t",
                 "knob_values": "",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": true},
             "cr_button": {
                 "label": "tracker",
                 "node_class": "Tracker4",
                 "shortcut": "y",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         },
         "bottom_group": {
             "bc_button": {
@@ -34,17 +40,21 @@
                 "node_class": "Crop",
                 "shortcut": "g",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": false}
         }
     },
     "filter_group" : {
+        "settings": {"label": "filter",
+                     "shortcut": "b"},
         "top_group": {
             "tc_button": {
                 "label": "zdefocus",
                 "node_class": "ZDefocus2",
                 "shortcut": "h",
                 "knob_values": "math direct size 20 max_size 100",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": false}
         },
         "center_group": {
             "cl_button": {
@@ -52,37 +62,44 @@
                 "node_class": "Dilate",
                 "shortcut": "v",
                 "knob_values": "channels alpha",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": true},
             "cc_button": {
                 "label": "blur",
                 "node_class": "Blur",
                 "shortcut": "b",
                 "knob_values": "size 15 channels alpha",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": false},
             "cr_button": {
                 "label": "defocus",
                 "node_class": "Defocus",
                 "shortcut": "n",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         },
         "bottom_group": {
             "bc_button": {
-                "label": "blur rgba",
+                "label": "blur.rgba",
                 "node_class": "Blur",
                 "shortcut": "",
                 "knob_values": "size 250 channels rgba",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         }
     },
     "color_group" : {
+        "settings": {"label": "color",
+                     "shortcut": "g"},
         "top_group": {
             "tc_button": {
                 "label": "colorspace",
                 "node_class": "Colorspace",
                 "shortcut": "t",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": false}
         },
         "center_group": {
             "cl_button": {
@@ -90,37 +107,44 @@
                 "node_class": "ColorCorrect",
                 "shortcut": "f",
                 "knob_values": "channels alpha",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": true},
             "cc_button": {
                 "label": "grade",
                 "node_class": "Grade",
                 "shortcut": "g",
                 "knob_values": "",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": true},
             "cr_button": {
                 "label": "saturation",
                 "node_class": "Saturation",
                 "shortcut": "h",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         },
         "bottom_group": {
             "bc_button": {
-                "label": "grade alpha",
+                "label": "grade.alpha",
                 "node_class": "Grade",
                 "shortcut": "b",
                 "knob_values": "channels alpha white_clamp true",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": true}
         }
     },
     "matte_group" : {
+        "settings": {"label": "matte",
+                     "shortcut": "s"},
         "top_group": {
             "tc_button": {
-                "label": "Merge.screen",
+                "label": "Merge.plus",
                 "node_class": "Merge2",
                 "shortcut": "w",
-                "knob_values": "operation screen",
-                "color": "33, 45, 59"}
+                "knob_values": "operation plus",
+                "color": "33, 45, 59",
+                "inpanel": false}
         },
         "center_group": {
             "cl_button": {
@@ -128,19 +152,22 @@
                 "node_class": "Keymix",
                 "shortcut": "a",
                 "knob_values": "channels alpha",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": false},
             "cc_button": {
                 "label": "ChannelMerge",
                 "node_class": "ChannelMerge",
                 "shortcut": "s",
                 "knob_values": "",
-                "color": "33, 45, 59"},
+                "color": "33, 45, 59",
+                "inpanel": false},
             "cr_button": {
                 "label": "Keyer",
                 "node_class": "Keyer",
                 "shortcut": "d",
                 "knob_values": "",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": false}
         },
         "bottom_group": {
             "bc_button": {
@@ -148,7 +175,53 @@
                 "node_class": "ChannelMerge",
                 "shortcut": "x",
                 "knob_values": "operation stencil label \"[value operation]\"",
-                "color": "33, 45, 59"}
+                "color": "33, 45, 59",
+                "inpanel": false}
+        }
+    },
+    "reformat_group" : {
+        "settings": {"label": "reformat",
+                     "shortcut": "j"},
+        "top_group": {
+            "tc_button": {
+                "label": "Reformat.HD",
+                "node_class": "Reformat",
+                "shortcut": "u",
+                "knob_values": "format HD_1080",
+                "color": "33, 45, 59",
+                "inpanel": false}
+        },
+        "center_group": {
+            "cl_button": {
+                "label": "Reformat.2K",
+                "node_class": "Reformat",
+                "shortcut": "h",
+                "knob_values": "format square_2K",
+                "color": "33, 45, 59",
+                "inpanel": false},
+            "cc_button": {
+                "label": "Reformat",
+                "node_class": "Reformat",
+                "shortcut": "j",
+                "knob_values": "",
+                "color": "33, 45, 59",
+                "inpanel": true},
+            "cr_button": {
+                "label": "Reformat.4K",
+                "node_class": "Reformat",
+                "shortcut": "k",
+                "knob_values": "format square_4k",
+                "color": "33, 45, 59",
+                "inpanel": false}
+        },
+        "bottom_group": {
+            "bc_button": {
+                "label": "Reformat",
+                "node_class": "Reformat",
+                "shortcut": "m",
+                "knob_values": "format square4K",
+                "color": "33, 45, 59",
+                "inpanel": false}
         }
     }
 }
