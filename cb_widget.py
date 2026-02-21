@@ -2,6 +2,8 @@
 import os
 import sys
 
+from cb_helper import load_groups
+
 ## set scaling factor settings before import any Pyside library
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] =  "1"  # enables auto scaling
 os.environ["QT_SCALE_FACTOR"] =  '1'
@@ -12,42 +14,113 @@ from Qt.QtWidgets import QApplication, QWidget, QGridLayout, QPushButton
 from Qt.QtCore import Qt, Signal, QCoreApplication
 
 
-STYLESHEET = """
-    border-radius: 12px;
+# btn_top
+# button_center_left
+# button_center
+# button_center_right
+# btn_buttom
+
+# SETTINGS = load_groups('cb_settings')
+# {'font_family': 'monospace', 'font_size': 18, 'font_weight': 600, 'ui_scaling_factor': '1.5'}
+BTN_STYLESHEET = """
     background-color: rgba({}, .9);
+    color: rgb({});
     padding-left: 20px;
     padding-right: 20px;
-    font-family: courier;
     font: 18px;
-    font-weight: 600;
-"""
+    font-weight: 800;
+""" #.format_map(_settings)
 
-HOVER_COLOR = '247, 211, 125'
+HOVER_COLOR = '249, 137, 1' # '247, 211, 125'
+
+def get_contrast_text_color(rgb):
+    """
+    Get the best readable text color (light or dark) based on the given background color.
+    Args:
+        rgb (str): the RGB color in the format 'int(R), int(G), int(B)'. Integer values between 0 and 255.
+    Returns:
+        rgb (str): the RGB color for the text, either light or dark, in the same format as the input.
+    """
+
+    LIGHT_TEXT = "180, 180, 180"
+    DARK_TEXT = "30, 30, 30"
+
+    rpc = rgb.replace(' ', '')
+    rgb_int = [int(value) for value in rpc.split(',')]
+
+    luminance = (0.299 * rgb_int[0] +
+                 0.587 * rgb_int[1] +
+                 0.114 * rgb_int[2])
+
+    return DARK_TEXT if luminance > 128 else LIGHT_TEXT
 
 class CustomButton(QPushButton):
-    def __init__(self, button_data=None, parent=None):
+    def __init__(self, button_name, button_data=None, button_height = 60, parent=None):
         super(CustomButton, self).__init__(parent)
 
-        fixed_button_height = 60
+        fixed_button_height = button_height
 
         label = button_data.get('label')
         shortcut = button_data.get('shortcut', None)
         button_color = button_data.get('color')
 
-        _label = '\n'.join(label.split(' ', 1))
+        _text_color = get_contrast_text_color(button_color)
+
+        _label = '\n'.join(label.split(' ', 1)) if len(label) > 20 else label
         label = '[ {} ] {}'.format(shortcut.upper(), _label) if shortcut else _label
 
+        self.setObjectName(button_name)
         self.setText(label)
         self.setFixedHeight(fixed_button_height)
         self.setFixedWidth(fixed_button_height * 5)
 
-        # It've descovered by accident, but when you set a property 'shortcut' to a button,
+        # I've discovered by accident, but when you set the property 'shortcut' to a button,
         # it becomes the button's shortcut
         self.setProperty('shortcut', shortcut)
         self.setProperty('node_data', button_data)
 
-        self.standard_color = STYLESHEET.format(button_color)
-        self.hover_color = STYLESHEET.format(HOVER_COLOR)
+        # SETTINGS['background_color'] = button_color
+        # SETTINGS['text_color'] = _text_color
+
+        sharpen_corner = 6
+        rounded_corner = 30
+
+        stylesheet_map = {
+            'btn_top': BTN_STYLESHEET +"""
+                border-top-left-radius: {1}px;
+                border-top-right-radius: {1}px;
+                border-bottom-left-radius: {0}px;
+                border-bottom-right-radius: {0}px;
+            """.format(sharpen_corner, rounded_corner),
+            'btn_left': BTN_STYLESHEET + """
+                border-top-left-radius: {1}px;
+                border-top-right-radius: {0}px;
+                border-bottom-left-radius: {1}px;
+                border-bottom-right-radius: {0}px;
+            """.format(sharpen_corner, rounded_corner),
+            'btn_center': BTN_STYLESHEET + """
+                border-top-left-radius: {0}px;
+                border-top-right-radius: {0}px;
+                border-bottom-left-radius: {0}px;
+                border-bottom-right-radius: {0}px;
+            """.format(sharpen_corner, rounded_corner),
+            'btn_right': BTN_STYLESHEET + """
+                border-top-left-radius: {0}px;
+                border-top-right-radius: {1}px;
+                border-bottom-left-radius: {0}px;
+                border-bottom-right-radius: {1}px;
+            """.format(sharpen_corner, rounded_corner),
+            'btn_bottom': BTN_STYLESHEET + """
+                border-top-left-radius: {0}px;
+                border-top-right-radius: {0}px;
+                border-bottom-left-radius: {1}px;
+                border-bottom-right-radius: {1}px;
+            """.format(sharpen_corner, rounded_corner),
+        }
+
+        self.standard_color = stylesheet_map.get(button_name, '').format(button_color, _text_color)
+        self.hover_color = stylesheet_map.get(button_name, '').format(HOVER_COLOR, _text_color)
+
         self.setStyleSheet(self.standard_color)
 
     def enterEvent(self, event):
@@ -74,16 +147,16 @@ class CrossBox(QWidget):
 
         top_group = self.group_data.get('top_group')
         if top_group:
-            collect_buttons.append((CustomButton(top_group['tc_button']), (0, 1)))
+            collect_buttons.append((CustomButton(button_name= 'btn_top', button_data=top_group['tc_button']), (0, 1)))
 
         center_group = self.group_data.get('center_group')
-        collect_buttons.append((CustomButton(center_group['cl_button']), (1, 0)))
-        collect_buttons.append((CustomButton(center_group['cc_button']), (1, 1)))
-        collect_buttons.append((CustomButton(center_group['cr_button']), (1, 2)))
+        collect_buttons.append((CustomButton(button_name= 'btn_left', button_data=center_group['cl_button']), (1, 0)))
+        collect_buttons.append((CustomButton(button_name= 'btn_center', button_data=center_group['cc_button']), (1, 1)))
+        collect_buttons.append((CustomButton(button_name= 'btn_right', button_data=center_group['cr_button']), (1, 2)))
 
         bottom_group = self.group_data.get('bottom_group')
         if bottom_group:
-            collect_buttons.append((CustomButton(bottom_group['bc_button']), (2, 1)))
+            collect_buttons.append((CustomButton(button_name= 'btn_bottom', button_data=bottom_group['bc_button']), (2, 1)))
 
         glay_main = QGridLayout()
         self.setLayout(glay_main)
@@ -152,7 +225,8 @@ def main(group_data, callback=None):
     if not app_existed:
         # Run standalone to test the interface
         # Needs an venv if PySide2 or 6
-        sys.exit(app.exec() if hasattr(app, "exec") else app.exec_())
+        # sys.exit(app.exec() if hasattr(app, "exec") else app.exec_())
+        app.exec_()
 
 def print_result(node_data):
     """
@@ -185,7 +259,7 @@ if __name__ == '__main__':
                 "node_class": "Colorspace",
                 "shortcut": "t",
                 "knob_values": "",
-                "color": "33, 45, 59",
+                "color": "180,180, 180",
                 "inpanel": False}
         },
         "center_group": {
@@ -194,14 +268,14 @@ if __name__ == '__main__':
                 "node_class": "ColorCorrect",
                 "shortcut": "f",
                 "knob_values": "channels alpha",
-                "color": "33, 45, 59",
+                "color": "145, 145, 145",
                 "inpanel": True},
             "cc_button": {
                 "label": "grade",
                 "node_class": "Grade",
                 "shortcut": "g",
                 "knob_values": "",
-                "color": "33, 45, 59",
+                "color": "151, 152, 15",
                 "inpanel": True},
             "cr_button": {
                 "label": "saturation",

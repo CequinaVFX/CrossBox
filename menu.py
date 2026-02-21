@@ -1,7 +1,10 @@
 import nuke
 
+import cb_main
 import cb_info
-from cb_menu_builder import build_menu
+import cb_manager
+from cb_nuke_helper import build_menu
+
 
 nuke.tprint('\n\t {} v{} '.format(cb_info.__title__,
                                   cb_info.__version__))

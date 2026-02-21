@@ -38,7 +38,6 @@ def create_node(node_data):
     except RuntimeError as error:
         nuke.message("Unable to create the node!\n {}".format(error))
 
-
 def main(group):
     saved_data = load_groups()
     group_data = saved_data.get(group)

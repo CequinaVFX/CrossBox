@@ -11,10 +11,11 @@ os.environ["QT_ENABLE_HIGHDPI_SCALING"] =  "1"  # enables auto scaling
 os.environ["QT_SCALE_FACTOR"] =  '1'
 
 from Qt import QtCore, QtGui, __binding__
-from Qt.QtWidgets import (QApplication, QWidget,  QGroupBox, QFrame,
+from Qt.QtWidgets import (QApplication, QWidget,  QGroupBox, QFrame, QStyleFactory,
                           QGridLayout, QVBoxLayout, QHBoxLayout,
                           QPushButton, QLabel, QLineEdit, QCheckBox, QComboBox)
 from Qt.QtCore import Qt, Signal, QCoreApplication
+
 
 QGROUPBOX_STYLE = """
     background-color: rgb(64, 64, 64);
@@ -51,7 +52,7 @@ def create_thick_separator(orientation='horizontal', thickness=2, color='#666'):
         thickness (int): thickness of the line
         color (str): hex code for color, default is #666 (light-gray)
     Returns:
-        Qframe object
+        QFrame object
     """
 
     line = QFrame()
@@ -61,7 +62,7 @@ def create_thick_separator(orientation='horizontal', thickness=2, color='#666'):
     else:
         line.setFrameShape(QFrame.HLine)
 
-    line.setFrameShadow(QFrame.Sunken)
+    line.setFrameShadow(QFrame.Plain)# (QFrame.Sunken)
     line.setLineWidth(int(thickness))
     line.setMidLineWidth(1)
 
@@ -73,6 +74,7 @@ def create_thick_separator(orientation='horizontal', thickness=2, color='#666'):
         }
     """)
     return line
+
 
 class NodeWidget(QGroupBox):
     def __init__(self, parent=None):
@@ -88,6 +90,8 @@ class NodeWidget(QGroupBox):
         # knob values (lbl, edt)
         # color (btn)
         # open properties (cbx)
+
+        self.btn_get_selected = QPushButton('Get selected')
 
         lbl_label = QLabel('Label')
         lbl_label.setAlignment(Qt.AlignRight)
@@ -121,24 +125,28 @@ class NodeWidget(QGroupBox):
         self.ckx_open_panel = QCheckBox('open properties panel')
         self.ckx_open_panel.setObjectName('ckx_open_panel')
 
-        glay_main.addWidget(lbl_label, 0, 0)
-        glay_main.addWidget(self.edt_label, 0, 1)
+        glay_main.addWidget(self.btn_get_selected, 0, 0, 1, 2)
 
-        glay_main.addWidget(lbl_class, 1, 0)
-        glay_main.addWidget(self.edt_class, 1, 1)
+        glay_main.addWidget(lbl_label, 1, 0)
+        glay_main.addWidget(self.edt_label, 1, 1)
 
-        glay_main.addWidget(lbl_shortcut, 2, 0)
-        glay_main.addWidget(self.edt_shortcut, 2, 1)
+        glay_main.addWidget(lbl_class, 2, 0)
+        glay_main.addWidget(self.edt_class, 2, 1)
 
-        glay_main.addWidget(lbl_knob_values, 3, 0)
-        glay_main.addWidget(self.edt_knob_values, 3, 1)
+        glay_main.addWidget(lbl_shortcut, 3, 0)
+        glay_main.addWidget(self.edt_shortcut, 3, 1)
 
-        glay_main.addWidget(self.btn_color, 4, 0)
-        glay_main.addWidget(self.edt_color, 4, 1)
+        glay_main.addWidget(lbl_knob_values, 4, 0)
+        glay_main.addWidget(self.edt_knob_values, 4, 1)
 
-        glay_main.addWidget(self.ckx_open_panel, 5, 1)
+        glay_main.addWidget(self.btn_color, 5, 0)
+        glay_main.addWidget(self.edt_color, 5, 1)
+
+        glay_main.addWidget(self.ckx_open_panel, 6, 1)
 
         self.setStyleSheet(QGROUPBOX_STYLE)
+
+        self.btn_get_selected.clicked.connect(self.get_selected_node)
 
     def update_values(self, data):
         self.edt_label.setText(data.get('label'))
@@ -147,6 +155,12 @@ class NodeWidget(QGroupBox):
         self.edt_knob_values.setText(data.get('knob_values'))
         self.edt_color.setText(data.get('color', '60, 60, 60'))
         self.ckx_open_panel.setChecked(data.get('inpanel', False))
+
+    def get_selected_node(self):
+        # node_data = nkh.get_selected_node()
+        # if node_data:
+        #     self.update_values(node_data)
+        pass
 
 
 class GroupInfo(QWidget):
@@ -188,6 +202,9 @@ class GroupInfo(QWidget):
 
         vlay_main.addLayout(glay_widgets)
 
+        self.setStyle(QStyleFactory.create('Fusion'))
+        # qss_style_content = puts.get_stylesheet()
+
     def update_values(self, new_items):
         self.cbx_group_name.clear()
 
@@ -219,6 +236,7 @@ class GroupInfo(QWidget):
     def delete_group(self):
         _item = self.get_selected_task()
         self.delete_group_name.emit(_item['group_name'])
+
 
 class FooterButtons(QFrame):
     def __init__(self, parent=None):
@@ -424,7 +442,6 @@ class CrossBoxManager(QWidget):
 
         # self.update_database(selected_item['group_name'])
 
-
     def save_database(self):
         print('saving DB')
 
@@ -433,6 +450,7 @@ class CrossBoxManager(QWidget):
         if self.standalone_test:
             QApplication.quit()
         return None
+
 
 _widget = None
 def main():
@@ -453,13 +471,24 @@ def main():
     _widget.setWindowFlags(Qt.Tool | Qt.Window)
 
     _widget.show()
-    _widget.move(QtGui.QCursor.pos() - _widget.rect().center())
+
+    cursor_pos = QtGui.QCursor.pos()
+    if hasattr(app, 'desktop'): # PySide2
+        desktop = app.desktop()
+        screen_num = desktop.screenNumber(cursor_pos)
+        screen_rect = desktop.availableGeometry(screen_num)
+    else: # PySide6
+        screen_rect = _widget.screen().availableGeometry()
+
+    _widget.move(screen_rect.center() - _widget.rect().center())
+
     _widget.raise_()
     _widget.activateWindow()
 
     if not app_existed:
         # Run standalone
-        sys.exit(app.exec() if hasattr(app, "exec") else app.exec_())
+        app.exec_()
+        # sys.exit(app.exec() if hasattr(app, "exec") else app.exec_())
 
 
 if __name__ == '__main__':
