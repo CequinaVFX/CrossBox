@@ -86,7 +86,7 @@ class CustomButton(QPushButton):
         rounded_corner = 30
 
         stylesheet_map = {
-            'btn_top': BTN_STYLESHEET +"""
+            'btn_top': BTN_STYLESHEET + """
                 border-top-left-radius: {1}px;
                 border-top-right-radius: {1}px;
                 border-bottom-left-radius: {0}px;

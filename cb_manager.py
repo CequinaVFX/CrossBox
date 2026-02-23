@@ -44,8 +44,8 @@ EMPTY_NODE = {
     "inpanel": False
 }
 
-
-def create_thick_separator(orientation='horizontal', thickness=2, color='#666'):
+#666
+def create_thick_separator(orientation='horizontal', thickness=2, color='60, 60, 60'):
     """
     Args:
         orientation (str): horizontal (default) / vertical
@@ -62,17 +62,18 @@ def create_thick_separator(orientation='horizontal', thickness=2, color='#666'):
     else:
         line.setFrameShape(QFrame.HLine)
 
-    line.setFrameShadow(QFrame.Plain)# (QFrame.Sunken)
+    line.setFrameShadow(QFrame.Plain) # (QFrame.Sunken)
     line.setLineWidth(int(thickness))
     line.setMidLineWidth(1)
 
     line.setStyleSheet("""
         QFrame {
-            background-color: #666;
+            background-color: rgb('60, 60, 60');
             margin: 10px 0px;
-            max-height: 2px;
+            max-height: 12px;
         }
     """)
+
     return line
 
 
