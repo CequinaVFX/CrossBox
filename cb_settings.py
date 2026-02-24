@@ -1,7 +1,9 @@
+# coding: utf-8
+
 import os
 import sys
 
-from cb_helper import load_groups
+from cb_helper import load_boxes
 from cb_manager import FooterButtons
 
 
@@ -16,7 +18,7 @@ class CrossBoxSettings(QWidget):
     def __init__(self, parent=None):
         super(CrossBoxSettings, self).__init__(parent)
 
-        self._settings = load_groups('cb_settings')
+        self._settings = load_boxes('cb_settings')
         print(self._settings)
 
     def init_ui(self):

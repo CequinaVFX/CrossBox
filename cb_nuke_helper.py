@@ -1,8 +1,10 @@
+# coding: utf-8
+
 import nuke
 
 import cb_main
 import cb_manager
-from cb_helper import load_groups
+from cb_helper import load_boxes
 
 
 """
@@ -147,13 +149,13 @@ def build_menu():
     Build the CrossBox menu, and add each Group as a command.
     If JSON doesn't exist, it will add only the Manager to the menu, where the user can create a new json file.
     """
-    groups = load_groups()
+    boxes = load_boxes()
 
-    if groups:
+    if boxes:
         toolbar = nuke.toolbar("Nodes")
         cb_menu = toolbar.addMenu('CrossBox')
 
-        for gr_name, value in groups.items():
+        for gr_name, value in boxes.items():
             _settings = value.get('settings')
             _label = _settings.get('label')
             shortcut = _settings.get('shortcut')
@@ -175,13 +177,13 @@ def update_menu():
     Updates the CrossBox menu either adding or removing entries.
 
     """
-    groups = load_groups()
+    boxes = load_boxes()
 
-    if groups:
+    if boxes:
         toolbar = nuke.toolbar('Nodes')
         cb_menu = toolbar.findItem('CrossBox')
 
-        for gr_name, value in groups.items():
+        for gr_name, value in boxes.items():
             _settings = value.get('settings')
             _label = _settings.get('label')
             shortcut = _settings.get('shortcut')

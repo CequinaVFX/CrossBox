@@ -1,8 +1,9 @@
 # coding: utf-8
+
 import os
 import sys
 
-from cb_helper import load_groups
+from cb_helper import load_boxes
 
 ## set scaling factor settings before import any Pyside library
 os.environ["QT_ENABLE_HIGHDPI_SCALING"] =  "1"  # enables auto scaling
@@ -20,7 +21,7 @@ from Qt.QtCore import Qt, Signal, QCoreApplication
 # button_center_right
 # btn_buttom
 
-# SETTINGS = load_groups('cb_settings')
+# SETTINGS = load_boxes('cb_settings')
 # {'font_family': 'monospace', 'font_size': 18, 'font_weight': 600, 'ui_scaling_factor': '1.5'}
 BTN_STYLESHEET = """
     background-color: rgba({}, .9);
@@ -135,28 +136,28 @@ class CrossBox(QWidget):
 
     def __init__(self):
         super(CrossBox, self).__init__()
-        self.group_data = None
+        self.box_data = None
         self.node_data = None
         self.standalone_test = False
 
-    def init_box(self, group_data, standalone_test=False):
-        self.group_data = group_data
+    def init_box(self, box_data, standalone_test=False):
+        self.box_data = box_data
         self.standalone_test = standalone_test
 
         collect_buttons = []
 
-        top_group = self.group_data.get('top_group')
-        if top_group:
-            collect_buttons.append((CustomButton(button_name= 'btn_top', button_data=top_group['tc_button']), (0, 1)))
+        top_box = self.box_data.get('top_node')
+        if top_box:
+            collect_buttons.append((CustomButton(button_name= 'btn_top', button_data=top_box['tc_button']), (0, 1)))
 
-        center_group = self.group_data.get('center_group')
-        collect_buttons.append((CustomButton(button_name= 'btn_left', button_data=center_group['cl_button']), (1, 0)))
-        collect_buttons.append((CustomButton(button_name= 'btn_center', button_data=center_group['cc_button']), (1, 1)))
-        collect_buttons.append((CustomButton(button_name= 'btn_right', button_data=center_group['cr_button']), (1, 2)))
+        center_box = self.box_data.get('center_nodes')
+        collect_buttons.append((CustomButton(button_name= 'btn_left', button_data=center_box['cl_button']), (1, 0)))
+        collect_buttons.append((CustomButton(button_name= 'btn_center', button_data=center_box['cc_button']), (1, 1)))
+        collect_buttons.append((CustomButton(button_name= 'btn_right', button_data=center_box['cr_button']), (1, 2)))
 
-        bottom_group = self.group_data.get('bottom_group')
-        if bottom_group:
-            collect_buttons.append((CustomButton(button_name= 'btn_bottom', button_data=bottom_group['bc_button']), (2, 1)))
+        bottom_box = self.box_data.get('bottom_node')
+        if bottom_box:
+            collect_buttons.append((CustomButton(button_name= 'btn_bottom', button_data=bottom_box['bc_button']), (2, 1)))
 
         glay_main = QGridLayout()
         self.setLayout(glay_main)
@@ -199,7 +200,7 @@ class CrossBox(QWidget):
 
 
 _widget = None
-def main(group_data, callback=None):
+def main(box_data, callback=None):
     global _widget
 
     if __binding__ == 'PySide2':
@@ -210,7 +211,7 @@ def main(group_data, callback=None):
     app = QApplication.instance() or QApplication(sys.argv)
 
     _widget = CrossBox()
-    _widget.init_box(group_data=group_data, standalone_test=not app_existed)
+    _widget.init_box(box_data=box_data, standalone_test=not app_existed)
 
     if callback:
         # This will send the data to the create_node function in cb_main.py
@@ -253,45 +254,45 @@ if __name__ == '__main__':
     crossbox_example = {
         "settings": {"label": "color",
                      "shortcut": "g"},
-        "top_group": {
+        "top_node": {
             "tc_button": {
                 "label": "colorspace",
                 "node_class": "Colorspace",
                 "shortcut": "t",
                 "knob_values": "",
-                "color": "180,180, 180",
+                "color": "175, 26, 189",
                 "inpanel": False}
         },
-        "center_group": {
+        "center_nodes": {
             "cl_button": {
                 "label": "colorcorrect",
                 "node_class": "ColorCorrect",
                 "shortcut": "f",
                 "knob_values": "channels alpha",
-                "color": "145, 145, 145",
+                "color": "232, 9, 89",
                 "inpanel": True},
             "cc_button": {
                 "label": "grade",
                 "node_class": "Grade",
                 "shortcut": "g",
                 "knob_values": "",
-                "color": "151, 152, 15",
+                "color": "232, 228, 9",
                 "inpanel": True},
             "cr_button": {
                 "label": "saturation",
                 "node_class": "Saturation",
                 "shortcut": "h",
                 "knob_values": "",
-                "color": "33, 45, 59",
+                "color": "26, 99, 189",
                 "inpanel": True}
         },
-        "bottom_group": {
+        "bottom_node": {
             "bc_button": {
                 "label": "grade.alpha",
                 "node_class": "Grade",
                 "shortcut": "b",
                 "knob_values": "channels alpha white_clamp True",
-                "color": "33, 45, 59",
+                "color": "227, 54, 54",
                 "inpanel": True}
         }
     }

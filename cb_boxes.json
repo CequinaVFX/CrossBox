@@ -1,8 +1,8 @@
 {
-    "transform_group" : {
+    "transform_box" : {
         "settings": {"label": "transform",
                      "shortcut": "t"},
-        "top_group": {
+        "top_node": {
             "tc_button": {
                 "label": "cornerpin",
                 "node_class": "CornerPin2D",
@@ -11,7 +11,7 @@
                 "color": "33, 45, 59",
                 "inpanel": true}
         },
-        "center_group": {
+        "center_nodes": {
             "cl_button": {
                 "label": "reformat",
                 "node_class": "Reformat",
@@ -34,7 +34,7 @@
                 "color": "33, 45, 59",
                 "inpanel": true}
         },
-        "bottom_group": {
+        "bottom_node": {
             "bc_button": {
                 "label": "crop",
                 "node_class": "Crop",
@@ -44,10 +44,10 @@
                 "inpanel": false}
         }
     },
-    "filter_group" : {
+    "filter_box" : {
         "settings": {"label": "filter",
                      "shortcut": "b"},
-        "top_group": {
+        "top_node": {
             "tc_button": {
                 "label": "zdefocus",
                 "node_class": "ZDefocus2",
@@ -56,7 +56,7 @@
                 "color": "18, 122, 120",
                 "inpanel": true}
         },
-        "center_group": {
+        "center_nodes": {
             "cl_button": {
                 "label": "erode",
                 "node_class": "Dilate",
@@ -79,7 +79,7 @@
                 "color": "18, 122, 120",
                 "inpanel": true}
         },
-        "bottom_group": {
+        "bottom_node": {
             "bc_button": {
                 "label": "blur.rgba",
                 "node_class": "Blur",
@@ -89,10 +89,10 @@
                 "inpanel": true}
         }
     },
-    "color_group" : {
+    "color_box" : {
         "settings": {"label": "color",
                      "shortcut": "g"},
-        "top_group": {
+        "top_node": {
             "tc_button": {
                 "label": "clamp",
                 "node_class": "Clamp",
@@ -101,7 +101,7 @@
                 "color": "150, 79, 158",
                 "inpanel": false}
         },
-        "center_group": {
+        "center_nodes": {
             "cl_button": {
                 "label": "colorcorrect",
                 "node_class": "ColorCorrect",
@@ -124,7 +124,7 @@
                 "color": "150, 79, 158",
                 "inpanel": true}
         },
-        "bottom_group": {
+        "bottom_node": {
             "bc_button": {
                 "label": "grade.alpha",
                 "node_class": "Grade",
@@ -134,10 +134,10 @@
                 "inpanel": true}
         }
     },
-    "matte_group" : {
+    "matte_box" : {
         "settings": {"label": "matte",
                      "shortcut": "h"},
-        "top_group": {
+        "top_node": {
             "tc_button": {
                 "label": "Copy",
                 "node_class": "Copy",
@@ -146,7 +146,7 @@
                 "color": "227, 54, 54",
                 "inpanel": false}
         },
-        "center_group": {
+        "center_nodes": {
             "cl_button": {
                 "label": "Keymix",
                 "node_class": "Keymix",
@@ -169,7 +169,7 @@
                 "color": "227, 54, 54",
                 "inpanel": false}
         },
-        "bottom_group": {
+        "bottom_node": {
             "bc_button": {
                 "label": "Keyer",
                 "node_class": "Keyer",

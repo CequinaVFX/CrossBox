@@ -3,7 +3,7 @@
 import nuke
 
 import cb_widget
-from cb_helper import load_groups
+from cb_helper import load_boxes
 
 
 def create_node(node_data):
@@ -38,15 +38,23 @@ def create_node(node_data):
     except RuntimeError as error:
         nuke.message("Unable to create the node!\n {}".format(error))
 
-def main(group):
-    saved_data = load_groups()
-    group_data = saved_data.get(group)
+def main(boxes):
+    """
+    It will be called from Nuke, with the name of the selected box.
+    Args:
+        boxes:
 
-    if not group_data:
-        nuke.message('No data found for this group.')
+    Returns:
+
+    """
+    saved_data = load_boxes()
+    boxes_data = saved_data.get(boxes)
+
+    if not boxes_data:
+        nuke.message('No data found for this boxes.')
         return
 
-    cb_widget.main(group_data, create_node)
+    cb_widget.main(boxes_data, create_node)
 
 
 

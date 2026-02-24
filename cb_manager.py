@@ -1,9 +1,11 @@
 # coding: utf-8
+
 import os
 import sys
 
 import cb_info
 import cb_helper as helper
+
 
 ## set scaling factor settings before import any Pyside library
 ## This might affect some Nuke windows
@@ -12,10 +14,10 @@ os.environ["QT_SCALE_FACTOR"] =  '1'
 
 from Qt import QtCore, QtGui, __binding__
 from Qt.QtWidgets import (QApplication, QWidget,  QGroupBox, QFrame, QStyleFactory,
-                          QGridLayout, QVBoxLayout, QHBoxLayout,
+                          QGridLayout, QVBoxLayout, QHBoxLayout, QColorDialog,
                           QPushButton, QLabel, QLineEdit, QCheckBox, QComboBox)
 from Qt.QtCore import Qt, Signal, QCoreApplication
-
+from Qt.QtGui import QColor
 
 QGROUPBOX_STYLE = """
     background-color: rgb(64, 64, 64);
@@ -44,8 +46,8 @@ EMPTY_NODE = {
     "inpanel": False
 }
 
-#666
-def create_thick_separator(orientation='horizontal', thickness=2, color='60, 60, 60'):
+
+def _add_separator(orientation='horizontal', thickness=2, color='60, 60, 60'):
     """
     Args:
         orientation (str): horizontal (default) / vertical
@@ -78,11 +80,10 @@ def create_thick_separator(orientation='horizontal', thickness=2, color='60, 60,
 
 
 class NodeWidget(QGroupBox):
-    def __init__(self, parent=None):
-        super(NodeWidget, self).__init__(parent)
+    node_data = Signal(str, str, str)
 
-        glay_main = QGridLayout()
-        self.setLayout(glay_main)
+    def __init__(self, name=None, parent=None):
+        super(NodeWidget, self).__init__(parent)
 
         # print(button_data)
         # label (lbl, edt)
@@ -91,6 +92,14 @@ class NodeWidget(QGroupBox):
         # knob values (lbl, edt)
         # color (btn)
         # open properties (cbx)
+
+        self.setObjectName(name)
+
+        self.got_color = False
+        self.default_color = QColor(60, 60, 60)
+
+        glay_main = QGridLayout()
+        self.setLayout(glay_main)
 
         self.btn_get_selected = QPushButton('Get selected')
 
@@ -148,52 +157,95 @@ class NodeWidget(QGroupBox):
         self.setStyleSheet(QGROUPBOX_STYLE)
 
         self.btn_get_selected.clicked.connect(self.get_selected_node)
+        self.btn_color.clicked.connect(self.get_color)
+
+        self.edt_label.editingFinished.connect(lambda: self.update_database(self.objectName(),
+                                                                            'label',
+                                                                            self.edt_label.text()))
+
+        for widget in self.findChildren(QLineEdit):
+            widget.editingFinished.connect(lambda w=widget: self.update_database(self.objectName(),
+                                                                                 w.objectName().split('_')[-1],
+                                                                                 w.text()))
+
+        # self.editingFinished.connect()
+        # line_edit.editingFinished.connect(lambda: your_method(line_edit, line_edit.text()))
 
     def update_values(self, data):
         self.edt_label.setText(data.get('label'))
         self.edt_class.setText(data.get('node_class'))
         self.edt_shortcut.setText(data.get('shortcut'))
         self.edt_knob_values.setText(data.get('knob_values'))
-        self.edt_color.setText(data.get('color', '60, 60, 60'))
+        _color = data.get('color', self.default_color)
+        self.edt_color.setText(_color)
+        self.update_button_color(_color)
         self.ckx_open_panel.setChecked(data.get('inpanel', False))
 
     def get_selected_node(self):
-        # node_data = nkh.get_selected_node()
-        # if node_data:
-        #     self.update_values(node_data)
+        nuke_env = False
+        try:
+            import cb_nuke_helper as nkh
+            nuke_env = True
+        except ImportError: pass
+
+        if nuke_env:
+            node_data = nkh.get_selected_node()
+            if node_data:
+                self.update_values(node_data)
         pass
 
+    def get_color(self):
+        self.default_color = QColorDialog.getColor()
 
-class GroupInfo(QWidget):
-    selected_group_name = Signal(str)
-    delete_group_name = Signal(str)
+        if self.default_color.isValid():
+            self.got_color = not self.got_color
+
+            _color = '{}, {}, {}'.format(self.default_color.red(),
+                                         self.default_color.green(),
+                                         self.default_color.blue())
+
+            self.update_button_color(_color)
+
+            self.edt_color.setText(_color)
+            self.update_database('color', _color)
+
+    def update_button_color(self, color):
+        self.btn_color.setStyleSheet("""
+                background-color: rgb({})
+                """.format(color))
+
+    def update_database(self, widget_name, data_key, data_value):
+        self.node_data.emit(widget_name, data_key, data_value)
+
+
+class BoxSettings(QWidget):
+    selected_box_name = Signal(str)
+    delete_box_name = Signal(str)
 
     def __init__(self, parent=None):
-        super(GroupInfo, self).__init__(parent)
+        super(BoxSettings, self).__init__(parent)
 
         vlay_main = QHBoxLayout()
         self.setLayout(vlay_main)
 
         glay_widgets = QGridLayout()
 
-        lbl_group_name = QLabel('Group name')
-        self.cbx_group_name = QComboBox()
-        self.cbx_group_name.currentIndexChanged.connect(self.changed_group)
-        self.cbx_group_name.setEditable(True)
-        self.cbx_group_name.setInsertPolicy(QComboBox.InsertAlphabetically)
+        lbl_box_name = QLabel('Box name')
+        self.cbx_box_name = QComboBox()
+        self.cbx_box_name.setEditable(True)
+        self.cbx_box_name.setInsertPolicy(QComboBox.InsertAlphabetically)
 
-        self.btn_delete_group = QPushButton('X')
-        self.btn_delete_group.setFixedWidth(24)
-        self.btn_delete_group.setStyleSheet('background-color: red')
-        self.btn_delete_group.setToolTip('Delete the selected group.')
-        self.btn_delete_group.clicked.connect(self.delete_group)
+        self.btn_delete_box = QPushButton('X')
+        self.btn_delete_box.setFixedWidth(24)
+        self.btn_delete_box.setStyleSheet('background-color: red')
+        self.btn_delete_box.setToolTip('Delete the selected box.')
 
-        lbl_shortcut = QLabel('Group shortcut')
+        lbl_shortcut = QLabel('Box shortcut')
         self.edt_shortcut = QLineEdit()
 
-        glay_widgets.addWidget(lbl_group_name, 0, 0)
-        glay_widgets.addWidget(self.cbx_group_name, 0, 1)
-        glay_widgets.addWidget(self.btn_delete_group, 0, 2)
+        glay_widgets.addWidget(lbl_box_name, 0, 0)
+        glay_widgets.addWidget(self.cbx_box_name, 0, 1)
+        glay_widgets.addWidget(self.btn_delete_box, 0, 2)
         glay_widgets.addWidget(lbl_shortcut, 1, 0)
         glay_widgets.addWidget(self.edt_shortcut, 1, 1)
 
@@ -206,37 +258,42 @@ class GroupInfo(QWidget):
         self.setStyle(QStyleFactory.create('Fusion'))
         # qss_style_content = puts.get_stylesheet()
 
+        self.cbx_box_name.currentIndexChanged.connect(self.changed_box_item)
+        self.btn_delete_box.clicked.connect(self.delete_box)
+
     def update_values(self, new_items):
-        self.cbx_group_name.clear()
+        self.cbx_box_name.clear()
 
         for index, (name, shortcut) in enumerate(new_items):
-            self.cbx_group_name.addItem(name)
+            self.cbx_box_name.addItem(name)
 
-            index = self.cbx_group_name.count() - 1
-            model = self.cbx_group_name.model()
+            index = self.cbx_box_name.count() - 1
+            model = self.cbx_box_name.model()
             model_index = model.index(index, 0)
 
             model.setData(model_index, shortcut, QtCore.Qt.UserRole)
 
-        # self.cbx_group_name.setCurrentIndex(0)
+        # self.cbx_box_name.setCurrentIndex(0)
         _sh = self.get_selected_task()
         self.edt_shortcut.setText(_sh['shortcut'])
 
     def get_selected_task(self):
-        index = self.cbx_group_name.currentIndex()
+        index = self.cbx_box_name.currentIndex()
         return {
-            'group_name': self.cbx_group_name.currentText().replace(' ', '_'),
-            'shortcut': self.cbx_group_name.itemData(index, QtCore.Qt.UserRole)
+            'box_name': self.cbx_box_name.currentText(),
+            'shortcut': self.cbx_box_name.itemData(index, QtCore.Qt.UserRole)
         }
 
-    def changed_group(self):
+    def changed_box_item(self):
         _item = self.get_selected_task()
         self.edt_shortcut.setText(_item['shortcut'])
-        self.selected_group_name.emit(_item['group_name'])
+        print('changed box item, emiting', _item['box_name'])
+        self.selected_box_name.emit(_item['box_name'])
 
-    def delete_group(self):
+    def delete_box(self):
         _item = self.get_selected_task()
-        self.delete_group_name.emit(_item['group_name'])
+        print('deliting box item, emiting', _item['box_name'])
+        self.delete_box_name.emit(_item['box_name'])
 
 
 class FooterButtons(QFrame):
@@ -263,7 +320,7 @@ class HelpWidget(QWidget):
         vlay_main = QVBoxLayout()
         self.setLayout(vlay_main)
 
-        separator = create_thick_separator()
+        separator = _add_separator()
 
         hlay_credits = QHBoxLayout()
 
@@ -294,12 +351,14 @@ class HelpWidget(QWidget):
 
 
 class CrossBoxManager(QWidget):
+    node_data = Signal(str, str)
+
     def __init__(self, parent=None):
         super(CrossBoxManager, self).__init__(parent)
         self.database = None
         self.standalone_test = None
         self.nodes_widgets = None
-        self.selected_group = None
+        self.selected_box = None
         self.init_ui()
 
     def init_ui(self, database=None, standalone_test=False):
@@ -308,23 +367,24 @@ class CrossBoxManager(QWidget):
 
         self.database = database
         self.standalone_test = standalone_test
-        self.selected_group = list(self.database.keys())[0]
+        self.selected_box = self.find_box_in_database(list(self.database.keys())[0])
 
-        self.group_widget = GroupInfo()
-        self.group_widget.selected_group_name.connect(self.changed_group_name)
-        self.group_widget.delete_group_name.connect(self.delete_group)
+        self.box_widget = BoxSettings()
 
-        self.top_node_widget = NodeWidget()
-        self.cl_node_widget = NodeWidget()
-        self.cm_node_widget = NodeWidget()
-        self.cr_node_widget = NodeWidget()
-        self.bottom_node_widget = NodeWidget()
+        self.top_node_widget = NodeWidget(name='top_node')
+        self.cl_node_widget = NodeWidget(name='cl_node')
+        self.cm_node_widget = NodeWidget(name='cm_node')
+        self.cr_node_widget = NodeWidget(name='cr_node')
+        self.bottom_node_widget = NodeWidget(name='bottom_node')
 
         self.nodes_widgets = [self.top_node_widget,
                               self.cl_node_widget,
                               self.cm_node_widget,
                               self.cr_node_widget,
                               self.bottom_node_widget]
+
+        for wd in self.nodes_widgets:
+            wd.node_data.connect(self.temp_update_db)
 
         self.footer = FooterButtons()
         self.footer.btn_save.clicked.connect(self.save_database)
@@ -333,7 +393,7 @@ class CrossBoxManager(QWidget):
         glay_main = QGridLayout()
         self.setLayout(glay_main)
 
-        glay_main.addWidget(self.group_widget, 0, 1)
+        glay_main.addWidget(self.box_widget, 0, 1)
 
         glay_main.addWidget(self.top_node_widget, 1, 1)
 
@@ -347,32 +407,36 @@ class CrossBoxManager(QWidget):
 
         glay_main.addWidget(HelpWidget(), 5, 0, 1, 3)
 
-        self.populate_groups_widget()
+        self.populate_boxes_widget()
         self.populate_nodes_widgets()
 
-    def populate_groups_widget(self):
-        available_groups = []
-        print('\n populating group combobox')
-        for group, group_nodes in self.database.items():
-            group_name = group.replace('_group', '')
-            shortcut = group_nodes.get('settings')['shortcut']
-            print(group_name, shortcut)
-            available_groups.append((group_name, shortcut))
+        # Set Signals from BoxSettings Widget
+        self.box_widget.selected_box_name.connect(self.populate_nodes_widgets)
+        self.box_widget.delete_box_name.connect(self.delete_box)
 
-        self.group_widget.update_values(available_groups)
-        print('end of populate groups\n')
+        return None
+
+    def populate_boxes_widget(self):
+        available_boxes = []
+        for box, box_nodes in self.database.items():
+            box_name = box.replace('_box', '')
+            shortcut = box_nodes.get('settings')['shortcut']
+            available_boxes.append((box_name, shortcut))
+
+        self.box_widget.update_values(available_boxes)
 
     def populate_nodes_widgets(self):
-        for node_group in self.selected_group:
-            if node_group == 'settings':
-                continue
+        _box = self.box_widget.get_selected_task()
+        self.selected_box = self.find_box_in_database(_box['box_name'])
 
-            elif node_group == 'top_group':
-                top_node = self.selected_group.get('top_group')
+        for node_box in self.selected_box:
+            if node_box == 'top_node':
+                top_node = self.selected_box.get('top_node')
+
                 self.top_node_widget.update_values(top_node['tc_button'])
 
-            elif node_group == 'center_group':
-                center_nodes = self.selected_group.get('center_group')
+            elif node_box == 'center_nodes':
+                center_nodes = self.selected_box.get('center_nodes')
                 center_left_node = center_nodes.get('cl_button')
                 center_middle_node = center_nodes.get('cc_button')
                 center_right_node = center_nodes.get('cr_button')
@@ -381,67 +445,89 @@ class CrossBoxManager(QWidget):
                 self.cm_node_widget.update_values(center_middle_node)
                 self.cr_node_widget.update_values(center_right_node)
 
-            else:
-                bottom_nodes = self.selected_group.get('bottom_group')
+            elif node_box == 'bottom_node':
+                bottom_nodes = self.selected_box.get('bottom_node')
+
                 self.bottom_node_widget.update_values(bottom_nodes['bc_button'])
 
     @staticmethod
-    def fix_group_name(group_name):
-        return group_name if '_group' in group_name else "{}_group".format(group_name)
+    def fix_box_name(box_name):
+        return box_name if '_box' in box_name else "{}_box".format(box_name)
 
-    def find_group_in_database(self, group_name):
-        return self.database.get(self.fix_group_name(group_name), None)
+    def find_box_in_database(self, box_name):
+        return self.database.get(self.fix_box_name(box_name), None)
 
-    def update_database(self, group_name):# , delete_group=False):
-        # if delete_group:
-        #     self.database.pop(self.fix_group_name(group_name))
-        #     self.populate_groups_widget()
-        #     self.selected_group = None
+    def update_database(self, box_name):# , delete_box=False):
+        # if delete_box:
+        #     self.database.pop(self.fix_box_name(box_name))
+        #     self.populate_boxes_widget()
+        #     self.selected_box = None
         #     return None
 
-        self.selected_group = self.find_group_in_database(group_name)
-        print('group name', group_name)
-        if self.selected_group:
+        self.selected_box = self.find_box_in_database(box_name)
+        if self.selected_box:
             print('update db')
-            print(self.selected_group)
-        elif group_name == '':
-            print('empty group_name, skipping')
-            self.selected_group = list(self.database.keys())[0]
-            print('selected group', self.selected_group)
+            print(self.selected_box)
+        elif box_name == '':
+            print('empty box_name, skipping')
+            self.selected_box = list(self.database.keys())[0]
+            print('selected box', self.selected_box)
         else:
-            print('add new group')
-            group_name = group_name if '_group' in group_name else "{}_group".format(group_name)
-            self.database[group_name] = {
-                "settings": {"label": group_name.replace('_group', ''),
-                             "shortcut": group_name[0]},
-                "top_group": {
+            print('add new box')
+            box_name = self.fix_box_name(box_name)
+            self.database[box_name] = {
+                "settings": {"label": box_name.replace('_box', ''),
+                             "shortcut": box_name[0]},
+                "top_node": {
                     "tc_button": EMPTY_NODE
                 },
-                "center_group": {
+                "center_nodes": {
                     "cl_button": EMPTY_NODE,
                     "cc_button": EMPTY_NODE,
                     "cr_button": EMPTY_NODE
                 },
-                "bottom_group": {
+                "bottom_node": {
                     "bc_button": EMPTY_NODE
                 }
             }
-            self.selected_group = self.database[group_name]
+            self.selected_box = self.database[box_name]
 
-    def changed_group_name(self):
-        selected_item = self.group_widget.get_selected_task()
-        self.update_database(selected_item['group_name'])
+    def changed_box_name(self):
+        selected_item = self.box_widget.get_selected_task()
+        self.update_database(selected_item['box_name'])
         self.populate_nodes_widgets()
 
-    def delete_group(self):
+    def temp_update_db(self, widget_name, data_key, data_value): # (widget_name, data_key, data_value)
+        print('\n\n')
+        print('\tDB')
+        print(self.database)
+        print()
+        _box = self.box_widget.get_selected_task()
+        print('temp update db', widget_name, data_key, data_value)
+        self.selected_box = self.find_box_in_database(_box['box_name'])
+        if not _box:
+            return
+        print('box name', _box)
+        node = self.database.get(_box['box_name'])
+        print(node)
+        # node = box_name.get(widget_name)
+
+        # if not node:
+        #     return
+
+        # print(node)
+
+        # db = self.database[box_name]
+        # db[data_key] = data_value
+
+    def delete_box(self):
         print('\n\n DELETING GROUP')
-        selected_item = self.group_widget.get_selected_task()
+        selected_item = self.box_widget.get_selected_task()
 
-        self.database.pop(self.fix_group_name(selected_item['group_name']))
-        self.populate_groups_widget()
-        # self.selected_group = None
-
-        # self.update_database(selected_item['group_name'])
+        self.database.pop(self.fix_box_name(selected_item['box_name']))
+        self.populate_boxes_widget()
+        # self.selected_box = None
+        # self.update_database(selected_item['box_name'])
 
     def save_database(self):
         print('saving DB')
@@ -449,6 +535,7 @@ class CrossBoxManager(QWidget):
     def closeEvent(self, e):
         self.close()
         if self.standalone_test:
+            print('Closing standalone')
             QApplication.quit()
         return None
 
@@ -461,9 +548,9 @@ def main():
         QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
         QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-    database = helper.load_groups()
+    database = helper.load_boxes()
 
-    app_existed = QApplication.instance() is not None
+    app_existed = QApplication.instance()# is not None
     app = QApplication.instance() or QApplication(sys.argv)
 
     _widget = CrossBoxManager()
@@ -479,7 +566,13 @@ def main():
         screen_num = desktop.screenNumber(cursor_pos)
         screen_rect = desktop.availableGeometry(screen_num)
     else: # PySide6
-        screen_rect = _widget.screen().availableGeometry()
+        # screen_rect = _widget.screen().availableGeometry()
+        # if app:
+        #     for screen in app.screens():
+        #         if screen == app.primaryScreen():
+        #             screen_rect = screen.availableGeometry()
+        screen_rect = app.primaryScreen().availableGeometry()
+
 
     _widget.move(screen_rect.center() - _widget.rect().center())
 
@@ -488,7 +581,7 @@ def main():
 
     if not app_existed:
         # Run standalone
-        app.exec_()
+        app.exec()
         # sys.exit(app.exec() if hasattr(app, "exec") else app.exec_())
 
 
